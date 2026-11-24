@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String @db.VarChar(100)
+  phone    String @db.VarChar(20)
+  email    String @unique @db.VarChar(100)
+  ra       String @unique @db.VarChar(7)
+  password String @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  reservations Reservation[]
+
+  @@map("users")
+}
+
+model Reservation {
+  id         String   @id @default(uuid())
+  startTime  DateTime @map("start_time")
+  finishTime DateTime @map("finish_time")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  laboratories Laboratory[]
+
+  user                    User                    @relation(fields: [userId], references: [id])
+  userId                  String                  @map("user_id")
+  reservationLaboratories ReservationLaboratory[]
+
+  @@map("reservations")
+}
+
+model Laboratory {
+  id          String @id @default(uuid())
+  name        String @db.VarChar(100)
+  capacity    Int
+  description String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  reservations            Reservation[]
+  reservationLaboratories ReservationLaboratory[]
+
+  @@map("laboratories")
+}
+
+model ReservationLaboratory {
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId String      @map("reservation_id")
+
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+  laboratoryId String     @map("laboratory_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([reservationId, laboratoryId])
+  @@map("reservation_laboratory")
+}
